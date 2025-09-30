@@ -1,44 +1,42 @@
-# .github/workflows/compile.yml
+# .github/workflows/compile.yml (Final Version using Pterodactyl Image)
 name: Compile Node.js Dependencies
 
-# This workflow runs whenever you push a change to the main branch
 on:
   push:
     branches: [ "main" ]
-  # This also allows you to run the workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
-    # We will use a standard Ubuntu Linux virtual machine
+    # We still use a standard runner to orchestrate the job
     runs-on: ubuntu-latest
 
+    # --- THE CRITICAL CHANGE IS HERE ---
+    # This tells GitHub Actions to run all subsequent steps inside this specific Docker container.
+    container:
+      image: quay.io/yajtpg/pterodactyl-images:nodejs-20
+
     steps:
-    # Step 1: Check out the repository code (our package.json)
+    # Step 1: Check out the repository code
+    # The code will be automatically mounted into the container's workspace.
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    # Step 2: Set up the correct Node.js version to match your server
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.11.0'
-
-    # Step 3: Install all dependencies. This is where the compilation happens.
-    # This will create the node_modules directory inside the virtual machine.
+    # Step 2: Install dependencies
+    # This command now runs INSIDE the Pterodactyl Node.js 20 container,
+    # guaranteeing a perfect compilation match.
     - name: Install dependencies
       run: npm install
 
-    # Step 4: Compress the resulting node_modules folder into a zip file
+    # Step 3: Compress the resulting node_modules folder
+    # This also runs inside the container.
     - name: Archive node_modules
-      run: |
-        echo "Compressing node_modules..."
-        zip -r node_modules.zip ./node_modules
-        echo "Compression complete."
+      run: zip -r node_modules.zip ./node_modules
 
-    # Step 5: Upload the zip file as a downloadable artifact
+    # Step 4: Upload the zip file as a downloadable artifact
+    # This action runs on the host runner but knows how to access files from the container's workspace.
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: compiled-node-modules
         path: node_modules.zip

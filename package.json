@@ -1,0 +1,14 @@
+{
+  "name": "dependency-compiler",
+  "version": "1.0.0",
+  "description": "Used to compile native Node.js addons",
+  "dependencies": {
+    "better-sqlite3": "*",
+    "body-parser": "*",
+    "dotenv": "*",
+    "express": "*",
+    "helmet": "*",
+    "jose": "*",
+    "ws": "*"
+  }
+}

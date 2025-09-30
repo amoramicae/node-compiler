@@ -1,0 +1,44 @@
+# .github/workflows/compile.yml
+name: Compile Node.js Dependencies
+
+# This workflow runs whenever you push a change to the main branch
+on:
+  push:
+    branches: [ "main" ]
+  # This also allows you to run the workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    # We will use a standard Ubuntu Linux virtual machine
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Check out the repository code (our package.json)
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up the correct Node.js version to match your server
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.11.0'
+
+    # Step 3: Install all dependencies. This is where the compilation happens.
+    # This will create the node_modules directory inside the virtual machine.
+    - name: Install dependencies
+      run: npm install
+
+    # Step 4: Compress the resulting node_modules folder into a zip file
+    - name: Archive node_modules
+      run: |
+        echo "Compressing node_modules..."
+        zip -r node_modules.zip ./node_modules
+        echo "Compression complete."
+
+    # Step 5: Upload the zip file as a downloadable artifact
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiled-node-modules
+        path: node_modules.zip

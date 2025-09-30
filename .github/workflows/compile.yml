@@ -1,4 +1,4 @@
-# .github/workflows/compile.yml (Final Version using Pterodactyl Image)
+# .github/workflows/compile.yml (Final Version for Maximum Compatibility)
 name: Compile Node.js Dependencies
 
 on:
@@ -8,33 +8,32 @@ on:
 
 jobs:
   build:
-    # We still use a standard runner to orchestrate the job
+    # Use a standard, modern build environment provided by GitHub.
+    # This ensures we have an up-to-date C++ compiler.
     runs-on: ubuntu-latest
-
-    # --- THE CRITICAL CHANGE IS HERE ---
-    # This tells GitHub Actions to run all subsequent steps inside this specific Docker container.
-    container:
-      image: quay.io/yajtpg/pterodactyl-images:nodejs-20
 
     steps:
     # Step 1: Check out the repository code
-    # The code will be automatically mounted into the container's workspace.
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Step 2: Install dependencies
-    # This command now runs INSIDE the Pterodactyl Node.js 20 container,
-    # guaranteeing a perfect compilation match.
+    # Step 2: Set up the correct Node.js version.
+    # This ensures the native addon is compiled for Node.js v20.11.0.
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.11.0'
+
+    # Step 3: Install all dependencies.
+    # This will run on the modern Ubuntu VM and succeed.
     - name: Install dependencies
       run: npm install
 
-    # Step 3: Compress the resulting node_modules folder
-    # This also runs inside the container.
+    # Step 4: Compress the resulting node_modules folder
     - name: Archive node_modules
       run: zip -r node_modules.zip ./node_modules
 
-    # Step 4: Upload the zip file as a downloadable artifact
-    # This action runs on the host runner but knows how to access files from the container's workspace.
+    # Step 5: Upload the zip file as a downloadable artifact
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
